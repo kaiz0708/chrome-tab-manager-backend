@@ -16,7 +16,7 @@ export class Tab extends DefaultModel {
    url!: string;
 
    @Property({ nullable: true, length: 512 })
-   imageURL?: string;
+   favIconUrl?: string;
 
    @ManyToOne(() => Collections)
    collection!: TCollections;
