@@ -1,20 +1,12 @@
 /** @format */
 
-import {
-   DataResponse,
-   InvalidRequest,
-   MessageResponse,
-   UnauthorizedResponse,
-} from "../../common/Responses";
+import { DataResponse, InvalidRequest } from "../../common/Responses";
 import { Hono } from "hono";
 import { Environment } from "../../config/enviroment";
 import { requirePermission } from "../../middleware/auth.middleware";
 import { Collections } from "../../model/collections.model";
 import { User } from "../../model/user.model";
-import {
-   createCollectionValidation,
-   updateCollectionValidation,
-} from "./collections.validation";
+import { createCollectionValidation, updateCollectionValidation } from "./collections.validation";
 
 export const collectionRoute = new Hono<Environment>()
    .get("/", requirePermission("ReadCollection"), async (c) => {
@@ -36,20 +28,14 @@ export const collectionRoute = new Hono<Environment>()
       );
       return DataResponse(c, collection);
    })
-   .post(
-      "/",
-      requirePermission("CreateCollection"),
-      createCollectionValidation,
-      async (c) => {
-         console.log("runn");
-         const em = c.get("em");
-         const data = c.req.valid("json");
-         const collection = new Collections();
-         Object.assign(collection, data);
-         await em.persistAndFlush(collection);
-         return DataResponse(c, collection);
-      }
-   )
+   .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
+      const em = c.get("em");
+      const data = c.req.valid("json");
+      const collection = new Collections();
+      Object.assign(collection, data);
+      await em.persistAndFlush(collection);
+      return DataResponse(c, collection);
+   })
    .delete("/:id", requirePermission("DeleteCollection"), async (c) => {
       const id = parseInt(c.req.param("id"));
       const em = c.get("em");
@@ -63,21 +49,16 @@ export const collectionRoute = new Hono<Environment>()
       }
       return DataResponse(c, collection);
    })
-   .put(
-      "/",
-      requirePermission("UpdateCollection"),
-      updateCollectionValidation,
-      async (c) => {
-         const em = c.get("em");
-         const data = c.req.valid("json");
-         const collection = await em.findOne(Collections, {
-            id: data.collection.id,
-         });
-         if (collection == null) {
-            return InvalidRequest(c, "Invalid Request");
-         }
-         Object.assign(collection, data);
-         await em.persistAndFlush(collection);
-         return DataResponse(c, collection);
+   .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
+      const em = c.get("em");
+      const data = c.req.valid("json");
+      const collection = await em.findOne(Collections, {
+         id: data.collection.id,
+      });
+      if (collection == null) {
+         return InvalidRequest(c, "Invalid Request");
       }
-   );
+      Object.assign(collection, data);
+      await em.persistAndFlush(collection);
+      return DataResponse(c, collection);
+   });

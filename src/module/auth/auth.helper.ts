@@ -23,15 +23,14 @@ export async function setUserJWT(c: Context, user: User) {
 }
 
 export async function getUserJWT(c: Context<Environment>) {
-   let token = c.req.header("authorization") || getCookie(c, "token") || "";
+   let token = c.req.header("Authorization") || getCookie(c, "token") || "";
+
    if (token && token.startsWith("Bearer ")) {
       token = token.slice(7, token.length);
    }
-
    try {
       await verify(token, c.env.SECRET);
       const payload = decode(token).payload as UserJWT;
-
       return payload;
    } catch (err) {
       return null;

@@ -2,9 +2,7 @@
 import { createMiddleware } from "hono/factory";
 import { Environment } from "../config/enviroment";
 import { getUserJWT } from "../module/auth/auth.helper";
-import { UnauthorizedResponse } from "../common/Responses";
-import { Collection } from "@mikro-orm/core";
-import { Permission } from "../model/permission.model";
+import { OKResponse, UnauthorizedResponse } from "../common/Responses";
 import { PermissionNames } from "../common/utils/groupPermissionDefault";
 
 export const authMiddleWare = createMiddleware<Environment>(async (c, next) => {
@@ -27,11 +25,7 @@ export const requirePermission = (permName: PermissionNames) => {
    return createMiddleware<Environment>(async (c, next) => {
       const userJWT = c.get("userJWT");
 
-      const checkPermission = userJWT.group.permissions.find(
-         (permission) => permission.name === permName
-      );
-
-      console.log(checkPermission);
+      const checkPermission = userJWT.group.permissions.find((permission) => permission.name === permName);
       if (checkPermission == null) {
          return UnauthorizedResponse(c);
       }

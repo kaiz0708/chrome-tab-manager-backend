@@ -43,14 +43,10 @@ export const queryChangePasswordValidation = zValidator(
 export const registerUserValidation = zValidator(
    "json",
    z.object({
-      username: z
-         .string()
-         .min(3, { message: "username must has length greater than 2" })
-         .max(60, { message: "username must has length less than 50" }),
+      username: z.string().min(3, { message: "username must has length greater than 2" }).max(60, { message: "username must has length less than 50" }),
       email: z.string().email({ message: "invalid email format" }),
       phoneNumber: z.string(),
       password: z.string().min(8).max(100),
-      imageURL: z.string(),
    })
 );
 

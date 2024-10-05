@@ -1,15 +1,9 @@
 /** @format */
 
-import {
-   DataResponse,
-   InvalidRequest,
-   UnauthorizedResponse,
-} from "../../common/Responses";
+import { DataResponse, InvalidRequest, OKResponse, UnauthorizedResponse } from "../../common/Responses";
 import { Hono } from "hono";
 import { setUserJWT } from "./auth.helper";
 import { Environment } from "../../config/enviroment";
-import { requirePermission } from "../../middleware/auth.middleware";
-import { decrypt, encrypt, hash } from "../../common/Crypto";
 import { UserService } from "./auth.service";
 import { loginValidation, registerUserValidation } from "./auth.validation";
 
@@ -27,25 +21,14 @@ export const authRoute = new Hono<AuthEnv>()
    })
    .post("/login", loginValidation, async (c) => {
       const { email, password } = c.req.valid("json");
-      console.log(email);
       const userService = c.get("userService");
 
       const user = await userService.findUserByEmail(email);
 
-      console.log(user);
+      if (user == null) return UnauthorizedResponse(c, "username or password is incorrect");
 
-      if (user == null)
-         return UnauthorizedResponse(c, "username or password is incorrect");
-
-      const isMatchPassword = await Bun.password.verify(
-         password,
-         user?.password
-      );
-      console.log(isMatchPassword);
-      if (!isMatchPassword)
-         return UnauthorizedResponse(c, "username or password is incorrect");
-
-      console.log("check");
+      const isMatchPassword = await Bun.password.verify(password, user?.password);
+      if (!isMatchPassword) return UnauthorizedResponse(c, "username or password is incorrect");
 
       const token = await setUserJWT(c, user);
 
@@ -67,4 +50,7 @@ export const authRoute = new Hono<AuthEnv>()
       const token = await setUserJWT(c, user);
 
       return DataResponse(c, { user, token });
+   })
+   .get("/expire", async (c) => {
+      return OKResponse(c);
    });

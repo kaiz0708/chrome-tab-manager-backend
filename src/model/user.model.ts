@@ -1,11 +1,5 @@
 /** @format */
-import {
-   Entity,
-   Property,
-   Collection,
-   OneToMany,
-   ManyToOne,
-} from "@mikro-orm/core";
+import { Entity, Property, Collection, OneToMany, ManyToOne } from "@mikro-orm/core";
 import { DefaultModel } from "../common/DefaultSQL";
 import { Collections } from "./collections.model";
 import { Group } from "./group.model";
@@ -21,9 +15,6 @@ export interface UserAttributes {
 
 @Entity()
 export class User extends DefaultModel {
-   @Property({ nullable: true })
-   displayName!: string;
-
    @Property({ unique: true })
    username!: string;
 
