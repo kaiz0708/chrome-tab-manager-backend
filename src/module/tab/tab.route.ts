@@ -5,59 +5,83 @@ import { Hono } from "hono";
 import { Environment } from "../../config/enviroment";
 import { requirePermission } from "../../middleware/auth.middleware";
 import { Collections } from "../../model/collections.model";
-import {
-   createTabForCollectionValidation,
-   updateTabForCollectionValidation,
-} from "./tab.validation";
+import { createTabForCollectionValidation, deleteTabForCollectionValidation } from "./tab.validation";
 import { Tab } from "../../model/tab.model";
 
 export const tabRoute = new Hono<Environment>()
-   .post(
-      "/",
-      requirePermission("CreateTab"),
-      createTabForCollectionValidation,
-      async (c) => {
-         const em = c.get("em");
-         const data = c.req.valid("json");
-         const collection = await em.findOne(Collections, {
-            id: data.collection.id,
-         });
-         if (collection == null) {
-            return InvalidRequest(c, "InvalidRequest");
-         }
-         const tab = new Tab();
-         Object.assign(tab, data);
-         collection.tabs.add(tab);
-         await em.persistAndFlush(collection);
-         return DataResponse(c, collection);
-      }
-   )
-   .delete("/:id", requirePermission("DeleteTab"), async (c) => {
-      const id = parseInt(c.req.param("id"));
+   .post("/move-collection", requirePermission("CreateTab"), createTabForCollectionValidation, async (c) => {
       const em = c.get("em");
-
-      if (id == null) {
-         return InvalidRequest(c);
-      }
-      const tab = await em.findOne(Tab, { id });
-      if (tab) {
-         await em.remove(tab).flush();
-      }
-      return DataResponse(c, tab);
-   })
-   .put(
-      "/",
-      requirePermission("UpdateTab"),
-      updateTabForCollectionValidation,
-      async (c) => {
-         const em = c.get("em");
-         const data = c.req.valid("json");
-         const tab = await em.findOne(Tab, { id: data.tab.id });
-         if (tab == null) {
-            return InvalidRequest(c, "Invalid Request");
+      const data = c.req.valid("json");
+      const collection = await em.findOne(
+         Collections,
+         {
+            id: data.collection.id,
+         },
+         {
+            populate: ["tabs"],
          }
-         Object.assign(tab, data);
-         await em.persistAndFlush(tab);
-         return DataResponse(c, tab);
+      );
+      if (collection == null) {
+         return InvalidRequest(c, "InvalidRequest");
       }
-   );
+
+      const newTab = new Tab();
+      newTab.title = data.title;
+      newTab.url = data.url;
+      newTab.favIconUrl = data.favIconUrl;
+      newTab.collection = collection;
+
+      const tabs = collection.tabs.getItems().sort((a, b) => a.position - b.position);
+
+      if (data.position !== -1) {
+         tabs.forEach((tab) => {
+            if (tab.position >= data.position) {
+               tab.position += 1;
+            }
+         });
+         newTab.position = data.position;
+      } else {
+         newTab.position = tabs.length;
+      }
+
+      collection.tabs.add(newTab);
+
+      await em.flush();
+      return DataResponse(c, { ...newTab, collection: collection.id });
+   })
+   .post("/remove-collection", requirePermission("DeleteTab"), deleteTabForCollectionValidation, async (c) => {
+      const em = c.get("em");
+      const data = c.req.valid("json");
+      const collection = await em.findOne(
+         Collections,
+         {
+            id: data.collection.id,
+         },
+         {
+            populate: ["tabs"],
+         }
+      );
+
+      if (collection == null) {
+         return InvalidRequest(c, "InvalidRequest");
+      }
+
+      const tab = await em.findOne(Tab, { id: data.tab.id });
+
+      if (tab == null) {
+         return InvalidRequest(c, "InvalidRequest");
+      }
+
+      collection.tabs.remove(tab);
+
+      const tabs = collection.tabs.getItems().sort((a, b) => a.position - b.position);
+
+      tabs.forEach((tab) => {
+         if (tab.position >= data.position) {
+            tab.position -= 1;
+         }
+      });
+
+      await em.flush();
+      return DataResponse(c, tab);
+   });

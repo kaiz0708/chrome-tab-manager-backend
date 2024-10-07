@@ -1,29 +1,30 @@
 /** @format */
 
 import { zValidator } from "@hono/zod-validator";
-import { password } from "bun";
 import { z } from "zod";
 
 export const createTabForCollectionValidation = zValidator(
    "json",
    z.object({
       title: z.string(),
-      description: z.string(),
       collection: z.object({
          id: z.number(),
       }),
-      imageURL: z.string(),
+      favIconUrl: z.string(),
       url: z.string(),
+      position: z.number(),
    })
 );
 
-export const updateTabForCollectionValidation = zValidator(
+export const deleteTabForCollectionValidation = zValidator(
    "json",
    z.object({
-      title: z.string(),
-      description: z.string(),
       tab: z.object({
          id: z.number(),
       }),
+      collection: z.object({
+         id: z.number(),
+      }),
+      position: z.number(),
    })
 );

@@ -10,13 +10,13 @@ export class Tab extends DefaultModel {
    title!: string;
 
    @Property({ nullable: true })
-   description!: string;
-
-   @Property({ nullable: true })
    url!: string;
 
    @Property({ nullable: true, length: 512 })
-   favIconUrl?: string;
+   favIconUrl!: string;
+
+   @Property({ nullable: true })
+   position!: number;
 
    @ManyToOne(() => Collections)
    collection!: TCollections;
