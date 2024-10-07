@@ -21,14 +21,13 @@ export const tabRoute = new Hono<Environment>()
             populate: ["tabs"],
          }
       );
+      console.log(collection);
       if (collection == null) {
          return InvalidRequest(c, "InvalidRequest");
       }
 
       const newTab = new Tab();
-      newTab.title = data.title;
-      newTab.url = data.url;
-      newTab.favIconUrl = data.favIconUrl;
+      Object.assign(newTab, data);
       newTab.collection = collection;
 
       const tabs = collection.tabs.getItems().sort((a, b) => a.position - b.position);
@@ -41,7 +40,7 @@ export const tabRoute = new Hono<Environment>()
          });
          newTab.position = data.position;
       } else {
-         newTab.position = tabs.length;
+         newTab.position = tabs.length - 1;
       }
 
       collection.tabs.add(newTab);

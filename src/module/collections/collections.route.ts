@@ -23,7 +23,11 @@ export const collectionRoute = new Hono<Environment>()
          { user },
          {
             populate: ["tabs"],
-            orderBy: { id: "DESC" },
+            orderBy: {
+               tabs: {
+                  position: "ASC",
+               },
+            },
          }
       );
       return DataResponse(c, collection);
