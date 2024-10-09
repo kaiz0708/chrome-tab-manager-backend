@@ -21,7 +21,7 @@ export const tabRoute = new Hono<Environment>()
             populate: ["tabs"],
          }
       );
-      console.log(collection);
+
       if (collection == null) {
          return InvalidRequest(c, "InvalidRequest");
       }

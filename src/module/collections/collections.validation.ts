@@ -8,9 +8,6 @@ export const createCollectionValidation = zValidator(
    z.object({
       title: z.string(),
       note: z.string(),
-      user: z.object({
-         id: z.number(),
-      }),
    })
 );
 

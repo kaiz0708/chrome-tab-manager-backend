@@ -34,9 +34,17 @@ export const collectionRoute = new Hono<Environment>()
    })
    .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
       const em = c.get("em");
+      const userJWT = c.get("userJWT");
+      const user = await em.findOne(User, {
+         id: userJWT.id,
+      });
+      if (user == null) {
+         return InvalidRequest(c, "Invalid Request");
+      }
       const data = c.req.valid("json");
       const collection = new Collections();
       Object.assign(collection, data);
+      collection.user = user;
       await em.persistAndFlush(collection);
       return DataResponse(c, collection);
    })
@@ -44,13 +52,24 @@ export const collectionRoute = new Hono<Environment>()
       const id = parseInt(c.req.param("id"));
       const em = c.get("em");
 
-      if (id == null) {
+      if (id === null) {
          return InvalidRequest(c);
       }
-      const collection = await em.findOne(Collections, { id });
-      if (collection) {
-         await em.remove(collection).flush();
+      const collection = await em.findOne(
+         Collections,
+         { id },
+         {
+            populate: ["tabs"],
+         }
+      );
+
+      if (!collection) {
+         return InvalidRequest(c, "Invalid Request");
       }
+
+      await em.remove(collection).flush();
+
+      console.log(collection);
       return DataResponse(c, collection);
    })
    .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
