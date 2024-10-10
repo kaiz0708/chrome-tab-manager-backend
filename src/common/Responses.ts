@@ -15,13 +15,7 @@ export interface ICustomResponse {
    paging?: IPaging;
 }
 
-export function CustomResponse(
-   c: Context,
-   status: StatusCode,
-   message: string,
-   data: any = undefined,
-   paging: IPaging | undefined = undefined
-) {
+export function CustomResponse(c: Context, status: StatusCode, message: string, data: any = undefined, paging: IPaging | undefined = undefined) {
    return c.json(
       {
          status,
@@ -41,12 +35,8 @@ export function MessageResponse(c: Context, message: string) {
    return CustomResponse(c, 200, message);
 }
 
-export function DataResponse(
-   c: Context,
-   data: any,
-   paging: IPaging | undefined = undefined
-) {
-   return CustomResponse(c, 200, "OK", data, paging);
+export function DataResponse(c: Context, data: any, message: any, paging: IPaging | undefined = undefined) {
+   return CustomResponse(c, 200, message, data, paging);
 }
 
 export function NotFoundResponse(c: Context, message = "Not found") {
@@ -69,10 +59,7 @@ export function TooManyRequest(c: Context, message = "Too many requests") {
    return CustomResponse(c, 429, message);
 }
 
-export function InternalErrorResponse(
-   c: Context,
-   message = "Internal server error"
-) {
+export function InternalErrorResponse(c: Context, message = "Internal server error") {
    return CustomResponse(c, 500, message);
 }
 

@@ -32,10 +32,14 @@ export const authRoute = new Hono<AuthEnv>()
 
       const token = await setUserJWT(c, user);
 
-      return DataResponse(c, {
-         token,
-         user,
-      });
+      return DataResponse(
+         c,
+         {
+            token,
+            user,
+         },
+         "Login success"
+      );
    })
    .post("/register", registerUserValidation, async (c) => {
       const userData = c.req.valid("json");
@@ -49,7 +53,7 @@ export const authRoute = new Hono<AuthEnv>()
       }
       const token = await setUserJWT(c, user);
 
-      return DataResponse(c, { user, token });
+      return DataResponse(c, { user, token }, "Register success");
    })
    .get("/expire", async (c) => {
       return OKResponse(c);

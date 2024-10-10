@@ -1,6 +1,6 @@
 /** @format */
 
-import { DataResponse, InvalidRequest } from "../../common/Responses";
+import { DataResponse, InvalidRequest, MessageResponse } from "../../common/Responses";
 import { Hono } from "hono";
 import { Environment } from "../../config/enviroment";
 import { requirePermission } from "../../middleware/auth.middleware";
@@ -30,7 +30,7 @@ export const collectionRoute = new Hono<Environment>()
             },
          }
       );
-      return DataResponse(c, collection);
+      return DataResponse(c, collection, "Get list collection success");
    })
    .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
       const em = c.get("em");
@@ -46,7 +46,7 @@ export const collectionRoute = new Hono<Environment>()
       Object.assign(collection, data);
       collection.user = user;
       await em.persistAndFlush(collection);
-      return DataResponse(c, collection);
+      return DataResponse(c, collection, "Create collection success");
    })
    .delete("/:id", requirePermission("DeleteCollection"), async (c) => {
       const id = parseInt(c.req.param("id"));
@@ -70,7 +70,7 @@ export const collectionRoute = new Hono<Environment>()
       await em.remove(collection).flush();
 
       console.log(collection);
-      return DataResponse(c, collection);
+      return DataResponse(c, collection, "Delele collection success");
    })
    .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
       const em = c.get("em");
@@ -83,5 +83,5 @@ export const collectionRoute = new Hono<Environment>()
       }
       Object.assign(collection, data);
       await em.persistAndFlush(collection);
-      return DataResponse(c, collection);
+      return DataResponse(c, collection, "Update collection success");
    });
