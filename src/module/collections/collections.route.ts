@@ -24,12 +24,14 @@ export const collectionRoute = new Hono<Environment>()
          {
             populate: ["tabs"],
             orderBy: {
+               createdAt: "DESC",
                tabs: {
                   position: "ASC",
                },
             },
          }
       );
+      console.log(collection);
       return DataResponse(c, collection, "Get list collection success");
    })
    .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
@@ -68,16 +70,26 @@ export const collectionRoute = new Hono<Environment>()
       }
 
       await em.remove(collection).flush();
-
-      console.log(collection);
       return DataResponse(c, collection, "Delele collection success");
    })
    .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
       const em = c.get("em");
       const data = c.req.valid("json");
-      const collection = await em.findOne(Collections, {
-         id: data.collection.id,
-      });
+      const collection = await em.findOne(
+         Collections,
+         {
+            id: data.collection.id,
+         },
+         {
+            populate: ["tabs"],
+            orderBy: {
+               createdAt: "DESC",
+               tabs: {
+                  position: "ASC",
+               },
+            },
+         }
+      );
       if (collection == null) {
          return InvalidRequest(c, "Invalid Request");
       }

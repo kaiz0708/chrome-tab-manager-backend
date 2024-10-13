@@ -24,12 +24,6 @@ export class User extends DefaultModel {
    @Property()
    password!: string;
 
-   @Property({ nullable: true })
-   phoneNumber?: string;
-
-   @Property({ nullable: true, length: 512 })
-   imageURL?: string;
-
    @OneToMany({
       entity: () => Collections,
       mappedBy: "user",

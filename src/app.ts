@@ -10,7 +10,6 @@ import { InternalErrorResponse, NotFoundResponse } from "./common/Responses";
 import { tabRoute } from "./module/tab/tab.route";
 import { collectionRoute } from "./module/collections/collections.route";
 import { cors } from "hono/cors";
-console.log(process.env.CLIENT_URL);
 
 const app = new Hono<Environment>()
    .use("*", rateLimiter)

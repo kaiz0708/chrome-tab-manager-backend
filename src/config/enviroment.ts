@@ -18,5 +18,6 @@ export interface Environment {
    Variables: {
       userJWT: UserJWT;
       em: EntityManager;
+      passport: any;
    };
 }

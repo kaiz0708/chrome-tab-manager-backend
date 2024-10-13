@@ -1,17 +1,17 @@
 /** @format */
 
 import { zValidator } from "@hono/zod-validator";
-import { nullable, z } from "zod";
+import { nullable, z, union } from "zod";
 
 export const createTabForCollectionValidation = zValidator(
    "json",
    z.object({
-      title: z.string(),
+      title: z.string().nullable().optional(),
       collection: z.object({
-         id: z.number(),
+         id: z.number().nullable().optional(),
       }),
-      favIconUrl: z.string(),
-      url: z.string(),
+      favIconUrl: z.string().nullable().optional(),
+      url: z.string().nullable().optional(),
       position: z.number(),
    })
 );
@@ -31,7 +31,7 @@ export const moveTabToCollectionOtherValidation = zValidator(
             id: z.number(),
          }),
       }),
-      favIconUrl: z.string(),
+      favIconUrl: z.string().nullable().optional(),
       url: z.string(),
       position: z.number(),
    })

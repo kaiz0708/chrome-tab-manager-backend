@@ -117,12 +117,12 @@ export const tabRoute = new Hono<Environment>()
          return InvalidRequest(c, "InvalidRequest");
       }
 
+      const tabsFrom = collection.tabs.getItems().sort((a, b) => a.position - b.position);
+
       collection.tabs.remove(tab);
 
-      const tabs = collection.tabs.getItems().sort((a, b) => a.position - b.position);
-
-      tabs.forEach((tab) => {
-         if (tab.position >= data.position) {
+      tabsFrom.forEach((tabFrom) => {
+         if (tabFrom.position > tab.position) {
             tab.position -= 1;
          }
       });
@@ -140,13 +140,11 @@ export const tabRoute = new Hono<Environment>()
          });
          newTab.position = data.position;
       } else {
-         newTab.position = tabs.length - 1;
+         newTab.position = tabsTo.length - 1;
       }
 
       collectionTo.tabs.add(newTab);
-      console.log(collection);
-      console.log(collectionTo);
 
       await em.flush();
-      return DataResponse(c, tab, `Move item to collection ${collectionTo.title} success`);
+      return DataResponse(c, { ...newTab, collection: collectionTo.id }, `Move item to collection ${collectionTo.title} success`);
    });

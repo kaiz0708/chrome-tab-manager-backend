@@ -14,7 +14,7 @@ export async function setUserJWT(c: Context, user: User) {
       username: user.username || "",
       email: user.email || "",
       iat,
-      exp: iat + 3 * 24 * 60 * 60,
+      exp: iat + 1000 * 24 * 60 * 60,
       group: user.group,
    };
    const token = await sign(payload, c.env.SECRET);

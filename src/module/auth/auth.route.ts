@@ -5,7 +5,8 @@ import { Hono } from "hono";
 import { setUserJWT } from "./auth.helper";
 import { Environment } from "../../config/enviroment";
 import { UserService } from "./auth.service";
-import { loginValidation, registerUserValidation } from "./auth.validation";
+import { loginValidation, registerUserValidation, loginGoogleValidation } from "./auth.validation";
+import { User } from "../../model/user.model";
 
 export interface AuthEnv extends Environment {
    Variables: Environment["Variables"] & {
@@ -57,4 +58,20 @@ export const authRoute = new Hono<AuthEnv>()
    })
    .get("/expire", async (c) => {
       return OKResponse(c);
+   })
+   .post("/google/login", loginGoogleValidation, async (c) => {
+      const userData = c.req.valid("json");
+      const userService = c.get("userService");
+      const newUser = await userService.createUserLoginGoogle(userData);
+      if (newUser != null) {
+         const token = await setUserJWT(c, newUser);
+         return DataResponse(
+            c,
+            {
+               token,
+               newUser,
+            },
+            "Login success"
+         );
+      }
    });
