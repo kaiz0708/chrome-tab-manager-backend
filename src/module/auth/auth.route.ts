@@ -5,8 +5,11 @@ import { Hono } from "hono";
 import { setUserJWT } from "./auth.helper";
 import { Environment } from "../../config/enviroment";
 import { UserService } from "./auth.service";
-import { loginValidation, registerUserValidation, loginGoogleValidation } from "./auth.validation";
-import { User } from "../../model/user.model";
+import { loginValidation, registerUserValidation, loginGoogleValidation, changePasswordValidation, resetPasswordValidation, verifyOtpCodeValidation } from "./auth.validation";
+import { generateOTP } from "@/common/utils/utils";
+import { sendEmail } from "@/common/Sendmails";
+import { Template } from "@/common/utils/template";
+import { hash } from "@/common/Crypto";
 
 export interface AuthEnv extends Environment {
    Variables: Environment["Variables"] & {
@@ -69,9 +72,54 @@ export const authRoute = new Hono<AuthEnv>()
             c,
             {
                token,
-               newUser,
+               user: newUser,
             },
             "Login success"
          );
       }
+   })
+   .post("/forgot-password", resetPasswordValidation, async (c) => {
+      const { email } = c.req.valid("json");
+      const userService = c.get("userService");
+      const em = c.get("em");
+      const user = await userService.findUserByEmail(email);
+      if (user == null) {
+         return InvalidRequest(c, "email not found");
+      }
+      const otp = generateOTP();
+      const timestamp: number = Date.now();
+      user.otp = otp;
+      user.timeOtp = timestamp;
+      await em.persistAndFlush(user);
+      const { emailBody, emailHeader } = Template.sendEmailNotiOtp(otp);
+      sendEmail(user.email || "", emailHeader, emailBody);
+      return DataResponse(c, { data: "success" }, "Check your email to verify otp code");
+   })
+   .post("/verify-otp", verifyOtpCodeValidation, async (c) => {
+      const { email, code } = c.req.valid("json");
+      const userService = c.get("userService");
+      const user = await userService.findUserByEmail(email);
+      if (user == null) {
+         return InvalidRequest(c, "email not found");
+      }
+      const timestamp: number = Date.now();
+      if (user.otp !== code || timestamp - user.timeOtp > 120000) {
+         return InvalidRequest(c, "verify otp code fail");
+      }
+      return DataResponse(c, { data: "success" }, "verify otp code success");
+   })
+   .post("/change-password", changePasswordValidation, async (c) => {
+      const { password, email } = c.req.valid("json");
+      const userService = c.get("userService");
+      const user = await userService.findUserByEmail(email);
+      console.log(user);
+      if (user == null) {
+         return UnauthorizedResponse(c, "email not exist");
+      }
+
+      await userService.updateUser(user.id, {
+         password: await hash(password),
+      });
+
+      return DataResponse(c, { data: "success" }, "Change password success");
    });

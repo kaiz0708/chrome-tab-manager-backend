@@ -8,7 +8,11 @@ import { PermissionNames } from "../common/utils/groupPermissionDefault";
 export const authMiddleWare = createMiddleware<Environment>(async (c, next) => {
    const url = c.req.url;
 
-   if (url.includes("auth/login") || url.includes("auth/register") || url.includes("auth/google/login") || url.includes("auth/google/callback")) {
+   const { pathname } = new URL(url);
+
+   const urlIngore = ["/auth/login", "/auth/register", "/auth/google/login", "/auth/google/callback", "/auth/forgot-password", "/auth/verify-otp", "/auth/change-password"];
+
+   if (urlIngore.includes(pathname)) {
       return await next();
    }
    const userJWT = await getUserJWT(c);

@@ -5,18 +5,7 @@ export interface GroupName {
    charge: string;
 }
 
-export const permissionNames = [
-   "Login",
-   "EditProfile",
-   "Register",
-   "CreateCollection",
-   "UpdateCollection",
-   "DeleteCollection",
-   "ReadCollection",
-   "CreateTab",
-   "UpdateTab",
-   "DeleteTab",
-] as const;
+export const permissionNames = ["Login", "EditProfile", "Register", "CreateCollection", "UpdateCollection", "DeleteCollection", "ReadCollection", "CreateTab", "UpdateTab", "DeleteTab"] as const;
 
 export const groupNames = {
    free: "FREE",

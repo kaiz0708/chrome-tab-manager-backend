@@ -24,7 +24,6 @@ export const collectionRoute = new Hono<Environment>()
          {
             populate: ["tabs"],
             orderBy: {
-               createdAt: "DESC",
                tabs: {
                   position: "ASC",
                },
@@ -83,7 +82,6 @@ export const collectionRoute = new Hono<Environment>()
          {
             populate: ["tabs"],
             orderBy: {
-               createdAt: "DESC",
                tabs: {
                   position: "ASC",
                },

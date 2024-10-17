@@ -30,6 +30,7 @@ export const changePasswordValidation = zValidator(
    "json",
    z.object({
       password: z.string(),
+      email: z.string(),
    })
 );
 
@@ -49,10 +50,11 @@ export const registerUserValidation = zValidator(
    })
 );
 
-export const registerValidation = zValidator(
-   "query",
+export const verifyOtpCodeValidation = zValidator(
+   "json",
    z.object({
       code: z.string(),
+      email: z.string(),
    })
 );
 

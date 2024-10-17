@@ -2,14 +2,24 @@
    "compilerOptions": {
       "target": "ESNext",
       "module": "ESNext",
-      "moduleResolution": "Bundler",
+      "moduleResolution": "Node",
       "strict": true,
       "skipLibCheck": true,
       "types": ["bun-types"],
+      "noImplicitAny": false,
+      "noEmit": true,
+      "allowImportingTsExtensions": true,
       "jsx": "react-jsx",
       "jsxImportSource": "hono/jsx",
       "experimentalDecorators": true,
       "emitDecoratorMetadata": true,
-      "useDefineForClassFields": false
-   }
+      "useDefineForClassFields": false,
+      "esModuleInterop": true,
+      "baseUrl": "./src",
+      "paths": {
+         "@/*": ["*"]
+      },
+      "declaration": true
+   },
+   "include": ["src/**/*"]
 }

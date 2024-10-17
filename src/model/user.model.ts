@@ -24,6 +24,12 @@ export class User extends DefaultModel {
    @Property()
    password!: string;
 
+   @Property({ nullable: true })
+   otp!: string;
+
+   @Property({ type: "bigint", nullable: true })
+   timeOtp!: number;
+
    @OneToMany({
       entity: () => Collections,
       mappedBy: "user",
