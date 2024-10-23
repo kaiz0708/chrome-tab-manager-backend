@@ -30,7 +30,6 @@ export const collectionRoute = new Hono<Environment>()
             },
          }
       );
-      console.log(collection);
       return DataResponse(c, collection, "Get list collection success");
    })
    .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
@@ -47,7 +46,7 @@ export const collectionRoute = new Hono<Environment>()
       Object.assign(collection, data);
       collection.user = user;
       await em.persistAndFlush(collection);
-      return DataResponse(c, collection, "Create collection success");
+      return DataResponse(c, collection, `Create ${collection.title} collection success`);
    })
    .delete("/:id", requirePermission("DeleteCollection"), async (c) => {
       const id = parseInt(c.req.param("id"));
@@ -69,7 +68,7 @@ export const collectionRoute = new Hono<Environment>()
       }
 
       await em.remove(collection).flush();
-      return DataResponse(c, collection, "Delele collection success");
+      return DataResponse(c, collection, `Delele ${collection.title} collection success`);
    })
    .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
       const em = c.get("em");
@@ -93,5 +92,5 @@ export const collectionRoute = new Hono<Environment>()
       }
       Object.assign(collection, data);
       await em.persistAndFlush(collection);
-      return DataResponse(c, collection, "Update collection success");
+      return DataResponse(c, collection, "Update name collection success");
    });

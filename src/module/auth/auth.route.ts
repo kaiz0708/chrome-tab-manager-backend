@@ -10,6 +10,7 @@ import { generateOTP } from "@/common/utils/utils";
 import { sendEmail } from "@/common/Sendmails";
 import { Template } from "@/common/utils/template";
 import { hash } from "@/common/Crypto";
+import { number } from "zod";
 
 export interface AuthEnv extends Environment {
    Variables: Environment["Variables"] & {
@@ -53,7 +54,7 @@ export const authRoute = new Hono<AuthEnv>()
       const user = await userService.createUser(userData);
 
       if (user == null) {
-         return InvalidRequest(c, "user already exist");
+         return InvalidRequest(c, "User already exist");
       }
       const token = await setUserJWT(c, user);
 
@@ -103,16 +104,15 @@ export const authRoute = new Hono<AuthEnv>()
          return InvalidRequest(c, "email not found");
       }
       const timestamp: number = Date.now();
-      if (user.otp !== code || timestamp - user.timeOtp > 120000) {
+      if (user.otp !== code || timestamp - user.timeOtp > parseInt(process.env.EXPIRE_CODE_OTP || "")) {
          return InvalidRequest(c, "verify otp code fail");
       }
-      return DataResponse(c, { data: "success" }, "verify otp code success");
+      return DataResponse(c, { data: "success" }, "Verify otp code success");
    })
    .post("/change-password", changePasswordValidation, async (c) => {
       const { password, email } = c.req.valid("json");
       const userService = c.get("userService");
       const user = await userService.findUserByEmail(email);
-      console.log(user);
       if (user == null) {
          return UnauthorizedResponse(c, "email not exist");
       }

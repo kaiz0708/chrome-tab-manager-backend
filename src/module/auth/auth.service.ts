@@ -23,6 +23,7 @@ export class UserService {
          User,
          {
             email: user.email,
+            username: user.username,
          },
          { populate: ["group.permissions.name"] }
       );
