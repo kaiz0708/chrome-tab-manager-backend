@@ -10,7 +10,6 @@ import { generateOTP } from "@/common/utils/utils";
 import { sendEmail } from "@/common/Sendmails";
 import { Template } from "@/common/utils/template";
 import { hash } from "@/common/Crypto";
-import { number } from "zod";
 
 export interface AuthEnv extends Environment {
    Variables: Environment["Variables"] & {

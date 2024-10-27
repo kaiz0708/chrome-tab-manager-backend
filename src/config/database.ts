@@ -5,10 +5,7 @@ import { Collections } from "../model/collections.model";
 import { Permission } from "../model/permission.model";
 import { Group } from "../model/group.model";
 import { Tab } from "../model/tab.model";
-import {
-   groupNames,
-   permissionNames,
-} from "../common/utils/groupPermissionDefault";
+import { groupNames, permissionNames } from "../common/utils/groupPermissionDefault";
 
 export const orm = await MikroORM.init({
    entities: [User, Collections, Tab, Permission, Group],
@@ -27,7 +24,6 @@ export const orm = await MikroORM.init({
 
 async function initDefault() {
    const em = orm.em.fork();
-   // const god = new User()
 
    let god = await em.findOne(User, { username: "god" });
    let group = await em.findOne(Group, { name: "FREE" });
@@ -60,7 +56,6 @@ async function initDefault() {
    }
    god.username = "god";
    god.email = "nguyenkyanh.tanmai@gmail.com";
-   god.displayName = "God";
    god.password = "12345";
 
    await em.persist(god).flush();
