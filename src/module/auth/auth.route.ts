@@ -29,10 +29,10 @@ export const authRoute = new Hono<AuthEnv>()
 
       const user = await userService.findUserByEmail(email);
 
-      if (user == null) return UnauthorizedResponse(c, "username or password is incorrect");
+      if (user == null) return UnauthorizedResponse(c, "Username or password is incorrect");
 
       const isMatchPassword = await Bun.password.verify(password, user?.password);
-      if (!isMatchPassword) return UnauthorizedResponse(c, "username or password is incorrect");
+      if (!isMatchPassword) return UnauthorizedResponse(c, "Username or password is incorrect");
 
       const token = await setUserJWT(c, user);
 
@@ -93,7 +93,7 @@ export const authRoute = new Hono<AuthEnv>()
       await em.persistAndFlush(user);
       const { emailBody, emailHeader } = Template.sendEmailNotiOtp(otp);
       sendEmail(user.email || "", emailHeader, emailBody);
-      return DataResponse(c, { data: "success" }, "Check your email to verify otp code");
+      return DataResponse(c, { data: "success" }, "Check your email to verify OTP code");
    })
    .post("/verify-otp", verifyOtpCodeValidation, async (c) => {
       const { email, code } = c.req.valid("json");
@@ -104,9 +104,9 @@ export const authRoute = new Hono<AuthEnv>()
       }
       const timestamp: number = Date.now();
       if (user.otp !== code || timestamp - user.timeOtp > parseInt(process.env.EXPIRE_CODE_OTP || "")) {
-         return InvalidRequest(c, "verify otp code fail");
+         return InvalidRequest(c, "Verify OTP code fail");
       }
-      return DataResponse(c, { data: "success" }, "Verify otp code success");
+      return DataResponse(c, { data: "success" }, "Verify OTP code success");
    })
    .post("/change-password", changePasswordValidation, async (c) => {
       const { password, email } = c.req.valid("json");
