@@ -12,7 +12,7 @@ export class Tab extends DefaultModel {
    @Property({ nullable: true })
    url!: string;
 
-   @Property({ nullable: true, length: 512 })
+   @Property({ type: "longtext", nullable: true })
    favIconUrl!: string;
 
    @Property({ nullable: true })
