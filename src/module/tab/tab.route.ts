@@ -45,9 +45,6 @@ export const tabRoute = new Hono<Environment>()
 
       collection.tabs.add(newTab);
 
-      console.log(c.req);
-      console.log(c.res);
-
       await em.flush();
       return DataResponse(c, { ...newTab, collection: collection.id }, `Move item to ${collection.title} collection success`);
    })
