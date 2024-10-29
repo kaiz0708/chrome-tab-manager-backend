@@ -46,7 +46,7 @@ export const tabRoute = new Hono<Environment>()
       collection.tabs.add(newTab);
 
       await em.flush();
-      return DataResponse(c, { ...newTab, collection: collection.id }, `Move item to ${collection.title} collection success`);
+      return DataResponse(c, { ...newTab, collection: collection.id }, `Item successfully moved to the ${collection.title} collection`);
    })
    .post("/remove-collection", requirePermission("DeleteTab"), deleteTabForCollectionValidation, async (c) => {
       const em = c.get("em");
@@ -82,7 +82,7 @@ export const tabRoute = new Hono<Environment>()
       });
 
       await em.flush();
-      return DataResponse(c, tab, `remove item in ${collection.title} collection success`);
+      return DataResponse(c, tab, `Item successfully removed from the ${collection.title} collection`);
    })
    .post("/move-to-collection-other", requirePermission("CreateTab"), moveTabToCollectionOtherValidation, async (c) => {
       const em = c.get("em");
@@ -146,5 +146,5 @@ export const tabRoute = new Hono<Environment>()
       collectionTo.tabs.add(newTab);
 
       await em.flush();
-      return DataResponse(c, { ...newTab, collection: collectionTo.id }, `Move item to collection ${collectionTo.title} success`);
+      return DataResponse(c, { ...newTab, collection: collectionTo.id }, `Item successfully moved to the ${collectionTo.title} collection`);
    });

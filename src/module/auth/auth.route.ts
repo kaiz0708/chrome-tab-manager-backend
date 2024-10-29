@@ -57,7 +57,7 @@ export const authRoute = new Hono<AuthEnv>()
       }
       const token = await setUserJWT(c, user);
 
-      return DataResponse(c, { user, token }, "Register success");
+      return DataResponse(c, { user, token }, "Registration successful");
    })
    .get("/expire", async (c) => {
       return OKResponse(c);
@@ -74,7 +74,7 @@ export const authRoute = new Hono<AuthEnv>()
                token,
                user: newUser,
             },
-            "Login success"
+            "Login successful"
          );
       }
    })
@@ -84,7 +84,7 @@ export const authRoute = new Hono<AuthEnv>()
       const em = c.get("em");
       const user = await userService.findUserByEmail(email);
       if (user == null) {
-         return InvalidRequest(c, "email not found");
+         return InvalidRequest(c, "Email not found");
       }
       const otp = generateOTP();
       const timestamp: number = Date.now();
@@ -93,32 +93,32 @@ export const authRoute = new Hono<AuthEnv>()
       await em.persistAndFlush(user);
       const { emailBody, emailHeader } = Template.sendEmailNotiOtp(otp);
       sendEmail(user.email || "", emailHeader, emailBody);
-      return DataResponse(c, { data: "success" }, "Check your email to verify OTP code");
+      return DataResponse(c, { data: "success" }, "Please check your email to verify the OTP code");
    })
    .post("/verify-otp", verifyOtpCodeValidation, async (c) => {
       const { email, code } = c.req.valid("json");
       const userService = c.get("userService");
       const user = await userService.findUserByEmail(email);
       if (user == null) {
-         return InvalidRequest(c, "email not found");
+         return InvalidRequest(c, "Email not found");
       }
       const timestamp: number = Date.now();
       if (user.otp !== code || timestamp - user.timeOtp > parseInt(process.env.EXPIRE_CODE_OTP || "")) {
-         return InvalidRequest(c, "Verify OTP code fail");
+         return InvalidRequest(c, "Failed to verify OTP code");
       }
-      return DataResponse(c, { data: "success" }, "Verify OTP code success");
+      return DataResponse(c, { data: "success" }, "Successfully verified OTP code");
    })
    .post("/change-password", changePasswordValidation, async (c) => {
       const { password, email } = c.req.valid("json");
       const userService = c.get("userService");
       const user = await userService.findUserByEmail(email);
       if (user == null) {
-         return UnauthorizedResponse(c, "email not exist");
+         return UnauthorizedResponse(c, "Email not exist");
       }
 
       await userService.updateUser(user.id, {
          password: await hash(password),
       });
 
-      return DataResponse(c, { data: "success" }, "Change password success");
+      return DataResponse(c, { data: "success" }, "Successfully changed password");
    });
