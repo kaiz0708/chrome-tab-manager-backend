@@ -20,7 +20,10 @@ const app = new Hono<Environment>()
    .use(
       cors({
          credentials: true,
-         origin: process.env.CLIENT_URL || process.env.CLIENT_URL_2 || "*",
+         origin: (origin) => {
+            const allowedOrigins = [process.env.CLIENT_URL, process.env.CLIENT_URL_2];
+            return allowedOrigins.includes(origin) ? origin : "";
+         },
       })
    )
    .use("*", config)
