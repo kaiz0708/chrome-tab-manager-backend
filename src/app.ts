@@ -14,9 +14,6 @@ import { cors } from "hono/cors";
 const app = new Hono<Environment>()
    .use("*", rateLimiter)
    .notFound((c) => NotFoundResponse(c, "unknown route"))
-   .onError((err, c) => {
-      return InternalErrorResponse(c);
-   })
    .use(
       cors({
          credentials: true,

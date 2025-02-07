@@ -9,12 +9,7 @@ import { groupNames, permissionNames } from "../common/utils/groupPermissionDefa
 
 export const orm = await MikroORM.init({
    entities: [User, Collections, Tab, Permission, Group],
-   dbName: process.env.MYSQL_DB,
-   user: process.env.MYSQL_USERNAME,
-   password: process.env.MYSQL_PASSWORD,
-   host: process.env.MYSQL_HOST,
-   port: parseInt(process.env.MYSQL_PORT || "5432"),
-
+   clientUrl: process.env.CLIENT_URL_DATABASE,
    schemaGenerator: {
       disableForeignKeys: true,
       createForeignKeyConstraints: true,

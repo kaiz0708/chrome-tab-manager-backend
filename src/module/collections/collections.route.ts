@@ -7,7 +7,6 @@ import { requirePermission } from "../../middleware/auth.middleware";
 import { Collections } from "../../model/collections.model";
 import { User } from "../../model/user.model";
 import { createCollectionValidation, updateCollectionValidation } from "./collections.validation";
-
 export const collectionRoute = new Hono<Environment>()
    .get("/", requirePermission("ReadCollection"), async (c) => {
       const em = c.get("em");

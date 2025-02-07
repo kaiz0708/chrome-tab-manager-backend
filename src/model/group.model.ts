@@ -1,12 +1,5 @@
 /** @format */
-import {
-   Collection,
-   Entity,
-   ManyToMany,
-   ManyToOne,
-   OneToMany,
-   Property,
-} from "@mikro-orm/core";
+import { Collection, Entity, ManyToMany, ManyToOne, OneToMany, Property } from "@mikro-orm/core";
 import { DefaultModel } from "../common/DefaultSQL";
 import { Permission } from "./permission.model";
 import { User } from "./user.model";
