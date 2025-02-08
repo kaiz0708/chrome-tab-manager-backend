@@ -57,7 +57,9 @@ export const authRoute = new Hono<AuthEnv>()
       }
       const token = await setUserJWT(c, user);
 
-      return DataResponse(c, { user, token }, "Registration successful");
+      return c.json({});
+
+      // return DataResponse(c, { user, token }, "Registration successful");
    })
    .get("/expire", async (c) => {
       return OKResponse(c);

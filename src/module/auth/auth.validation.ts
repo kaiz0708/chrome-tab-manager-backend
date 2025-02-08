@@ -1,7 +1,6 @@
 /** @format */
 
 import { zValidator } from "@hono/zod-validator";
-import { password } from "bun";
 import { z } from "zod";
 
 export const loginValidation = zValidator(
