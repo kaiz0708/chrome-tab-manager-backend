@@ -21,3 +21,7 @@ export class Tab extends DefaultModel {
    @ManyToOne(() => Collections)
    collection!: TCollections;
 }
+
+export interface TypeTab extends Partial<Omit<Tab, "collection">> {
+   collection: number;
+}

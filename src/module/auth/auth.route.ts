@@ -1,6 +1,6 @@
 /** @format */
 
-import { DataResponse, InvalidRequest, OKResponse, UnauthorizedResponse } from "../../common/Responses";
+import { ResponseToJson } from "../../common/Responses";
 import { Hono } from "hono";
 import { setUserJWT } from "./auth.helper";
 import { Environment } from "../../config/enviroment";
@@ -10,6 +10,8 @@ import { generateOTP } from "@/common/utils/utils";
 import { sendEmail } from "@/common/Sendmails";
 import { Template } from "@/common/utils/template";
 import { hash } from "@/common/Crypto";
+import { HttpResponseBuilder, HttpStatusCode } from "@anot/http-response-builder";
+import { User } from "@/model/user.model";
 
 export interface AuthEnv extends Environment {
    Variables: Environment["Variables"] & {
@@ -29,21 +31,27 @@ export const authRoute = new Hono<AuthEnv>()
 
       const user = await userService.findUserByEmail(email);
 
-      if (user == null) return UnauthorizedResponse(c, "Username or password is incorrect");
+      if (user == null) {
+         const resUnauthorized = HttpResponseBuilder.unauthorized().setMessage("Username or password is incorrect").build();
+         return ResponseToJson(c, resUnauthorized, HttpStatusCode.UNAUTHORIZED);
+      }
 
       const isMatchPassword = await Bun.password.verify(password, user?.password);
-      if (!isMatchPassword) return UnauthorizedResponse(c, "Username or password is incorrect");
+      if (!isMatchPassword) {
+         const resUnauthorized = HttpResponseBuilder.unauthorized().setMessage("Username or password is incorrect").build();
+         return ResponseToJson(c, resUnauthorized, HttpStatusCode.UNAUTHORIZED);
+      }
 
       const token = await setUserJWT(c, user);
 
-      return DataResponse(
-         c,
-         {
+      const resOk = HttpResponseBuilder.ok<{ token: string; user: User }>()
+         .setData({
             token,
             user,
-         },
-         "Login success"
-      );
+         })
+         .setMessage("Login successful")
+         .build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/register", registerUserValidation, async (c) => {
       const userData = c.req.valid("json");
@@ -53,16 +61,24 @@ export const authRoute = new Hono<AuthEnv>()
       const user = await userService.createUser(userData);
 
       if (user == null) {
-         return InvalidRequest(c, "User already exist");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("User already exist").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
       const token = await setUserJWT(c, user);
 
-      return c.json({});
+      const resOk = HttpResponseBuilder.ok<{ user: User; token: string }>()
+         .setData({
+            user,
+            token,
+         })
+         .setMessage("Registration successful")
+         .build();
 
-      // return DataResponse(c, { user, token }, "Registration successful");
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .get("/expire", async (c) => {
-      return OKResponse(c);
+      const resOk = HttpResponseBuilder.ok().build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/google/login", loginGoogleValidation, async (c) => {
       const userData = c.req.valid("json");
@@ -70,14 +86,15 @@ export const authRoute = new Hono<AuthEnv>()
       const newUser = await userService.createUserLoginGoogle(userData);
       if (newUser != null) {
          const token = await setUserJWT(c, newUser);
-         return DataResponse(
-            c,
-            {
-               token,
+         const resOk = HttpResponseBuilder.ok<{ user: User; token: string }>()
+            .setData({
                user: newUser,
-            },
-            "Login successful"
-         );
+               token,
+            })
+            .setMessage("Login successful")
+            .build();
+
+         return ResponseToJson(c, resOk, HttpStatusCode.OK);
       }
    })
    .post("/forgot-password", resetPasswordValidation, async (c) => {
@@ -85,42 +102,59 @@ export const authRoute = new Hono<AuthEnv>()
       const userService = c.get("userService");
       const em = c.get("em");
       const user = await userService.findUserByEmail(email);
+
       if (user == null) {
-         return InvalidRequest(c, "Email not found");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Email not found").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
+
       const otp = generateOTP();
       const timestamp: number = Date.now();
       user.otp = otp;
       user.timeOtp = timestamp;
+
       await em.persistAndFlush(user);
+
       const { emailBody, emailHeader } = Template.sendEmailNotiOtp(otp);
+
       sendEmail(user.email || "", emailHeader, emailBody);
-      return DataResponse(c, { data: "success" }, "Please check your email to verify the OTP code");
+
+      const resOk = HttpResponseBuilder.ok<{ data: string }>().setData({ data: "success" }).setMessage("Please check your email to verify the OTP code").build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/verify-otp", verifyOtpCodeValidation, async (c) => {
       const { email, code } = c.req.valid("json");
       const userService = c.get("userService");
       const user = await userService.findUserByEmail(email);
+
       if (user == null) {
-         return InvalidRequest(c, "Email not found");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Email not found").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
+
       const timestamp: number = Date.now();
+
       if (user.otp !== code || timestamp - user.timeOtp > parseInt(process.env.EXPIRE_CODE_OTP || "")) {
-         return InvalidRequest(c, "Failed to verify OTP code");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Failed to verify OTP code").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
-      return DataResponse(c, { data: "success" }, "Successfully verified OTP code");
+
+      const resOk = HttpResponseBuilder.ok<{ data: string }>().setData({ data: "success" }).setMessage("Successfully verified OTP code").build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/change-password", changePasswordValidation, async (c) => {
       const { password, email } = c.req.valid("json");
       const userService = c.get("userService");
       const user = await userService.findUserByEmail(email);
       if (user == null) {
-         return UnauthorizedResponse(c, "Email not exist");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Email not found").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       await userService.updateUser(user.id, {
          password: await hash(password),
       });
 
-      return DataResponse(c, { data: "success" }, "Successfully changed password");
+      const resOk = HttpResponseBuilder.ok<{ data: string }>().setData({ data: "success" }).setMessage("Successfully changed password").build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    });
