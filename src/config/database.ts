@@ -9,7 +9,7 @@ import { groupNames, permissionNames } from "../common/utils/groupPermissionDefa
 
 export const orm = await MikroORM.init({
    entities: [User, Collections, Tab, Permission, Group],
-   clientUrl: process.env.CLIENT_URL_DATABASE,
+   clientUrl: process.env.CLIENT_URL_DATABASE_LOCAL,
    schemaGenerator: {
       disableForeignKeys: true,
       createForeignKeyConstraints: true,

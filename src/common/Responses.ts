@@ -1,6 +1,7 @@
 /** @format */
 import { Context, TypedResponse } from "hono";
 import { StatusCode } from "hono/utils/http-status";
+import { Response } from "@anot/http-response-builder";
 
 export interface IPaging {
    page: number;
@@ -65,4 +66,11 @@ export function InternalErrorResponse(c: Context, message = "Internal server err
 
 export function UnauthorizedResponse(c: Context, message = "Unauthorized") {
    return CustomResponse(c, 401, message);
+}
+
+type T = any;
+
+export function ResponseToJson(c: Context, response?: Response<T>, status?: StatusCode) {
+   if (status) c.status(status);
+   return c.json(response);
 }

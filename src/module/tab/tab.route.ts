@@ -1,12 +1,13 @@
 /** @format */
 
-import { DataResponse, InvalidRequest } from "../../common/Responses";
+import { InvalidRequest, ResponseToJson } from "../../common/Responses";
 import { Hono } from "hono";
 import { Environment } from "../../config/enviroment";
 import { requirePermission } from "../../middleware/auth.middleware";
 import { Collections } from "../../model/collections.model";
 import { createTabForCollectionValidation, deleteTabForCollectionValidation, moveTabToCollectionOtherValidation } from "./tab.validation";
-import { Tab } from "../../model/tab.model";
+import { Tab, TypeTab } from "../../model/tab.model";
+import { HttpResponseBuilder, HttpStatusCode, Response } from "@anot/http-response-builder";
 
 export const tabRoute = new Hono<Environment>()
    .post("/move-collection", requirePermission("CreateTab"), createTabForCollectionValidation, async (c) => {
@@ -23,7 +24,8 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null) {
-         return InvalidRequest(c, "InvalidRequest");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const newTab = new Tab();
@@ -46,7 +48,12 @@ export const tabRoute = new Hono<Environment>()
       collection.tabs.add(newTab);
 
       await em.flush();
-      return DataResponse(c, { ...newTab, collection: collection.id }, `Item successfully moved to the ${collection.title} collection`);
+
+      const resOk = HttpResponseBuilder.ok<TypeTab>()
+         .setData({ ...newTab, collection: collection.id })
+         .setMessage(`Item successfully moved to the ${collection.title} collection`)
+         .build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/remove-collection", requirePermission("DeleteTab"), deleteTabForCollectionValidation, async (c) => {
       const em = c.get("em");
@@ -62,13 +69,15 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null) {
-         return InvalidRequest(c, "InvalidRequest");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const tab = await em.findOne(Tab, { id: data.tab.id });
 
       if (tab == null) {
-         return InvalidRequest(c, "InvalidRequest");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       collection.tabs.remove(tab);
@@ -82,7 +91,9 @@ export const tabRoute = new Hono<Environment>()
       });
 
       await em.flush();
-      return DataResponse(c, tab, `Item successfully removed from the ${collection.title} collection`);
+
+      const resOk = HttpResponseBuilder.ok<Tab>().setData(tab).setMessage(`Item successfully removed from the ${collection.title} collection`).build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/move-to-collection-other", requirePermission("CreateTab"), moveTabToCollectionOtherValidation, async (c) => {
       const em = c.get("em");
@@ -108,13 +119,15 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null || collectionTo == null) {
-         return InvalidRequest(c, "InvalidRequest");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const tab = await em.findOne(Tab, { id: data.move.tab.id });
 
       if (tab == null) {
-         return InvalidRequest(c, "InvalidRequest");
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const tabsFrom = collection.tabs.getItems().sort((a, b) => a.position - b.position);
@@ -146,5 +159,10 @@ export const tabRoute = new Hono<Environment>()
       collectionTo.tabs.add(newTab);
 
       await em.flush();
-      return DataResponse(c, { ...newTab, collection: collectionTo.id }, `Item successfully moved to the ${collectionTo.title} collection`);
+
+      const resOk = HttpResponseBuilder.ok<TypeTab>()
+         .setData({ ...newTab, collection: collectionTo.id })
+         .setMessage(`Item successfully moved to the ${collectionTo.title} collection`)
+         .build();
+      return ResponseToJson(c, resOk, HttpStatusCode.OK);
    });
