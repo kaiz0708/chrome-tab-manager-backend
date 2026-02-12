@@ -2,8 +2,13 @@
 
 import crypto from "crypto";
 
+
+const ENC_KEY = crypto
+  .createHash("sha256")
+  .update(String(process.env.ENC_KEY))
+  .digest(); // luôn ra 32 bytes
+
 const IV_LENGTH = 16;
-const ENC_KEY = Buffer.from(process.env.SECRET?.repeat(3) + "12345" || "");
 
 function toText(data: Object | string) {
    if (typeof data === "object") {
