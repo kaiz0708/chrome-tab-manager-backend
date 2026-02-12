@@ -7,7 +7,8 @@ import { requirePermission } from "../../middleware/auth.middleware";
 import { Collections } from "../../model/collections.model";
 import { createTabForCollectionValidation, deleteTabForCollectionValidation, moveTabToCollectionOtherValidation } from "./tab.validation";
 import { Tab, TypeTab } from "../../model/tab.model";
-import { HttpResponseBuilder, HttpStatusCode, Response } from "@anot/http-response-builder";
+import { HttpResponseBuilder, HttpStatusCode } from "@anot/http-response-builder";
+import { logger } from "@/logs/logs";
 
 export const tabRoute = new Hono<Environment>()
    .post("/move-collection", requirePermission("CreateTab"), createTabForCollectionValidation, async (c) => {
@@ -24,7 +25,8 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Move tab to collection failed - Collection not found with ID: ${data.collection}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
@@ -52,7 +54,6 @@ export const tabRoute = new Hono<Environment>()
       const resOk = HttpResponseBuilder.ok<TypeTab>()
          .setData({ ...newTab, collection: collection.id })
          .setMessage(`Item successfully moved to the ${collection.title} collection`)
-         .build();
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/remove-collection", requirePermission("DeleteTab"), deleteTabForCollectionValidation, async (c) => {
@@ -69,14 +70,16 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Remove tab from collection failed - Collection not found with ID: ${data.collection}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const tab = await em.findOne(Tab, { id: data.tab.id });
 
       if (tab == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Remove tab from collection failed - Tab not found with ID: ${data.tab}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
@@ -92,7 +95,7 @@ export const tabRoute = new Hono<Environment>()
 
       await em.flush();
 
-      const resOk = HttpResponseBuilder.ok<Tab>().setData(tab).setMessage(`Item successfully removed from the ${collection.title} collection`).build();
+      const resOk = HttpResponseBuilder.ok<Tab>().setData(tab).setMessage(`Item successfully removed from the ${collection.title} collection`);
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/move-to-collection-other", requirePermission("CreateTab"), moveTabToCollectionOtherValidation, async (c) => {
@@ -119,14 +122,16 @@ export const tabRoute = new Hono<Environment>()
       );
 
       if (collection == null || collectionTo == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Move tab to another collection failed - Collection not found with ID: ${data.move.collectionFrom} or ${data.move.collectionTo}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       const tab = await em.findOne(Tab, { id: data.move.tab.id });
 
       if (tab == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Move tab to another collection failed - Tab not found with ID: ${data.move.tab}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
@@ -163,6 +168,5 @@ export const tabRoute = new Hono<Environment>()
       const resOk = HttpResponseBuilder.ok<TypeTab>()
          .setData({ ...newTab, collection: collectionTo.id })
          .setMessage(`Item successfully moved to the ${collectionTo.title} collection`)
-         .build();
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    });

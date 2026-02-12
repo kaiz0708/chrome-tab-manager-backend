@@ -8,6 +8,7 @@ import { Collections } from "../../model/collections.model";
 import { User } from "../../model/user.model";
 import { createCollectionValidation, updateCollectionValidation } from "./collections.validation";
 import { HttpResponseBuilder, HttpStatusCode } from "@anot/http-response-builder";
+import { logger } from "@/logs/logs";
 export const collectionRoute = new Hono<Environment>()
    .get("/", requirePermission("ReadCollection"), async (c) => {
       const em = c.get("em");
@@ -17,7 +18,8 @@ export const collectionRoute = new Hono<Environment>()
       });
 
       if (user == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Get collections failed - User not found with ID: ${userJWT.id}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
@@ -34,7 +36,7 @@ export const collectionRoute = new Hono<Environment>()
          }
       );
 
-      const resOk = HttpResponseBuilder.ok<Collections[]>().setData(collection).setMessage("Get list collection success").build();
+      const resOk = HttpResponseBuilder.ok<Collections[]>().setData(collection).setMessage("Get list collection success");
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .post("/", requirePermission("CreateCollection"), createCollectionValidation, async (c) => {
@@ -45,7 +47,8 @@ export const collectionRoute = new Hono<Environment>()
       });
 
       if (user == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Create collection failed - User not found with ID: ${userJWT.id}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
@@ -56,7 +59,7 @@ export const collectionRoute = new Hono<Environment>()
 
       await em.persistAndFlush(collection);
 
-      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage(`Successfully created ${collection.title} collection`).build();
+      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage(`Successfully created ${collection.title} collection`);
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .delete("/:id", requirePermission("DeleteCollection"), async (c) => {
@@ -75,13 +78,14 @@ export const collectionRoute = new Hono<Environment>()
       );
 
       if (!collection) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Delete collection failed - Collection not found with ID: ${id}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
 
       await em.remove(collection).flush();
 
-      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage(`Successfully deleted ${collection.title} collection`).build();
+      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage(`Successfully deleted ${collection.title} collection`);
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    })
    .put("/", requirePermission("UpdateCollection"), updateCollectionValidation, async (c) => {
@@ -102,12 +106,13 @@ export const collectionRoute = new Hono<Environment>()
          }
       );
       if (collection == null) {
-         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request").build();
+         logger.info(`Update collection failed - Collection not found with ID: ${data.collection.id}`);
+         const resBadRequest = HttpResponseBuilder.badRequest().setMessage("Invalid Request");
          return ResponseToJson(c, resBadRequest, HttpStatusCode.BAD_REQUEST);
       }
       Object.assign(collection, data);
       await em.persistAndFlush(collection);
 
-      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage("Successfully updated the collection name").build();
+      const resOk = HttpResponseBuilder.ok<Collections>().setData(collection).setMessage("Successfully updated the collection name");
       return ResponseToJson(c, resOk, HttpStatusCode.OK);
    });
